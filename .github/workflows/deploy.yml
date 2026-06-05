@@ -1,0 +1,32 @@
+name: Deploy EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy para EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/site
+
+            git pull origin main
+
+            sudo docker stop site || true
+            sudo docker rm site || true
+
+            sudo docker build -t meu-site .
+
+            sudo docker run -d \
+              --name site \
+              -p 80:80 \
+              meu-site
